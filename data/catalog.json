@@ -13,6 +13,13 @@
       "country": "France",
       "description": "Radio Associative",
       "logo": "https://media.discordapp.net/attachments/1442573888553877585/1551669548548362271/radioplatine_pp_normale.png?ex=6ab2d061&is=6ab17ee1&hm=a6ecc876d95ffb0da9b32a777077f5f35eb0c84e58fce5d47819b5d6ffc392d0&=&format=webp&quality=lossless"
+    },
+    {
+      "id": "perso-60d6d84b",
+      "name": "RedZing Radio",
+      "country": "France",
+      "description": "Web radio régionale/locale de la Côte d'azur",
+      "logo": "https://cdn.discordapp.com/attachments/1442573888553877585/1551675555940667492/logo_regional.png?ex=6ab2d5f9&is=6ab18479&hm=c991b9bc4e2e3ecad7c170a3200de793539c595d08277f32015b42311bd502b9&"
     }
   ],
   "categories": {
@@ -23,6 +30,70 @@
     ]
   },
   "custom": [
+    {
+      "id": "d0ef32f0-ff29-4aa1-832c-0f9257d55213",
+      "name": "RedZing Monaco/Menton",
+      "url": "https://onair.redzingradio.com/redzing-monaco",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551675557043765278/play_monaco.png?ex=6ab2d5f9&is=6ab18479&hm=2a34a681b41a3918f961d0ca2b73c44703b68dcf588acadb74c4e07719648098&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-60d6d84b",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "c5e32052-6cea-4818-9854-199997554c25",
+      "name": "RedZing Fréjus/Saint-Raphaël ",
+      "url": "https://onair.redzingradio.com/redzing-frejus",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551675556628537485/play_frejus.png?ex=6ab2d5f9&is=6ab18479&hm=32707f644453bfac6530f195b269aab6aec28f23f62a261999754c490e714fa5&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-60d6d84b",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "a02a647a-8695-41fd-88a0-d961f051901e",
+      "name": "RedZing Nice",
+      "url": "https://onair.redzingradio.com/redzing-nice",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551675556318285895/play_nice.png?ex=6ab2d5f9&is=6ab18479&hm=ca76ca5e64010a44ee8f100b7fbc9d8c129ee3b405744304576b45cdb9676c2f&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-60d6d84b",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "be26fc7b-c92d-49ff-b4d6-973e329c0d33",
+      "name": "RedZing HD+",
+      "url": "https://onair.redzingradio.com/redzing-aac-320",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551675555940667492/logo_regional.png?ex=6ab2d5f9&is=6ab18479&hm=c991b9bc4e2e3ecad7c170a3200de793539c595d08277f32015b42311bd502b9&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-60d6d84b",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "f216da42-5f05-4771-a171-1ddf17e87031",
+      "name": "RedZing",
+      "url": "https://onair.redzingradio.com/redzing-256",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551675555940667492/logo_regional.png?ex=6ab2d5f9&is=6ab18479&hm=c991b9bc4e2e3ecad7c170a3200de793539c595d08277f32015b42311bd502b9&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-60d6d84b",
+      "countryCode": "FR"
+    },
     {
       "id": "8acff9b7-040d-465b-aea4-cae960be66d4",
       "name": "Radio Platine Nouvelle Aquitaine",
