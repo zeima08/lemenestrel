@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Le Ménestrel
 
-## Getting Started
+Webapp de radio en ligne : écoute des milliers de radios du monde entier, classées par réseaux (Radio France, RRI, BBC…), et **enregistre-les** en un clic.
 
-First, run the development server:
+Construit avec Next.js 16, React 19 et Tailwind CSS 4. Les stations viennent de l'API libre [Radio Browser](https://www.radio-browser.info/), sans clé ni compte.
+
+## Fonctionnalités
+
+- **Découvrir** : recherche par nom, filtre par pays (tous les pays disponibles) et par genre, pagination « Charger plus ».
+- **Réseaux** : les grands groupes radio (Radio France, RRI, RFI, NRJ, RTL, RTBF, RTS, BBC, NPR…) avec leurs versions régionales et locales, logos inclus.
+- **Favoris** : gardés dans le navigateur.
+- **Enregistrement** : bouton **● REC**, flux capturé tel quel (sans ré-encodage, donc sans perte).
+  - Sur Chrome, Edge et Brave, l'enregistrement est écrit **directement sur le disque** au fur et à mesure : idéal pour les longues sessions.
+  - Sinon, il est gardé dans le navigateur (onglet **Enregistrements**) puis téléchargeable en mp3, aac ou ogg.
+- **Stations en panne** : masquées automatiquement à la lecture (avec un bouton Annuler).
+- **Admin local** : gestion du catalogue, voir plus bas.
+
+## Démarrage
+
+Prérequis : Node.js 20 ou plus récent.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Pour la production :
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm run start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Enregistrer une radio
 
-## Learn More
+1. Lance une station.
+2. Clique sur **● REC**. Sur Chrome/Edge, choisis où créer le fichier (case « Sur disque » cochée).
+3. Clique sur **■ Stop** pour terminer.
 
-To learn more about Next.js, take a look at the following resources:
+Le flux passe par une petite route serveur (`/api/stream`) qui contourne les restrictions CORS des radios. Elle refuse les adresses locales et privées. Elle consomme de la bande passante et des connexions longues : prévois un hébergement classique (VPS, Docker) plutôt qu'un hébergement serverless avec limite de durée.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Admin (en local uniquement)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Ouvre `/admin` pendant `npm run dev` (lien en bas de la page d'accueil). Tout est écrit dans [`data/catalog.json`](data/catalog.json) :
 
-## Deploy on Vercel
+- **Recherche globale** : catalogue, stations bloquées et Radio Browser.
+- **Tester les flux** : les stations mortes passent en rouge avec une icône de signal barré. Un clic bloque toutes les mortes.
+- **Modifier** une station : nom, flux, logo, pays, genres.
+- **Réseaux personnalisés** et **catégories** : crée tes propres groupes, puis range les stations par glisser-déposer ou avec le menu « Réseau ».
+- **Vues** : liste, grille ou compact.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Pour publier tes changements : `git commit` + `git push` de `data/catalog.json`. Le site le lit au moment du build. L'écriture est refusée en production et hors `localhost`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Structure
+
+```
+app/
+  page.tsx                  page d'accueil
+  components/               interface (lecteur, réseaux, enregistrements)
+  admin/                    admin du catalogue (local)
+  api/stream/               relais des flux audio (enregistrement)
+  api/check/                test de disponibilité d'un flux
+  api/admin/catalog/        écriture de data/catalog.json (local)
+lib/
+  radio.ts                  client de l'API Radio Browser
+  networks.ts               définition des réseaux (Radio France, RRI…)
+  catalog.ts                catalogue éditorial (blocages, corrections, réseaux)
+  recordings.ts             enregistrements (IndexedDB)
+data/catalog.json           catalogue versionné
+```
+
+## Notes
+
+- Favoris, volume et enregistrements sont stockés dans ton navigateur : ils ne suivent pas d'un appareil à l'autre.
+- Les logos des réseaux sont récupérés via le service de favicons de Google.
+- Le thème reprend celui de plus2tele.com (fond marine, bleu `#5073d4`, police SUSE).
