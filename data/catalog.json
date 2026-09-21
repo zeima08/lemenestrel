@@ -6,6 +6,13 @@
       "country": "France ",
       "description": "Les Stations du Reseau Cherie FM",
       "logo": "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2F7%2F72%2FLogo_cheriefm.svg%2F3840px-Logo_cheriefm.svg.png&f=1&nofb=1&ipt=3afd70c0a6f2adead7c6d7f5293d8b67b6b1190f6d7cf202133b4cb23b1ae12e"
+    },
+    {
+      "id": "perso-0d78144d",
+      "name": "Radio Platine",
+      "country": "France",
+      "description": "Radio Associative",
+      "logo": "https://media.discordapp.net/attachments/1442573888553877585/1551669548548362271/radioplatine_pp_normale.png?ex=6ab2d061&is=6ab17ee1&hm=a6ecc876d95ffb0da9b32a777077f5f35eb0c84e58fce5d47819b5d6ffc392d0&=&format=webp&quality=lossless"
     }
   ],
   "categories": {
@@ -16,6 +23,120 @@
     ]
   },
   "custom": [
+    {
+      "id": "8acff9b7-040d-465b-aea4-cae960be66d4",
+      "name": "Radio Platine Nouvelle Aquitaine",
+      "url": "https://azura.radioplatine.fr:5001/listen/radio_platine/flux.nouvelleaquitaine",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551669641561112747/radioplatine_pochette_nouvelle_aquitaine.png?ex=6ab2d077&is=6ab17ef7&hm=25773a547667556fb04078120affb5e5fb57c941aa980b3f1a33daef8985d375&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-0d78144d",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "b6d152d5-7583-425b-a810-370348be3e74",
+      "name": "Radio Platine Normandie",
+      "url": "https://azura.radioplatine.fr:5001/listen/radio_platine/flux.normandie",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551669641204465746/radioplatine_pochette_normandie.png?ex=6ab2d077&is=6ab17ef7&hm=83abd5e953cb1c240fcfb1fd28c3929b65d80539433a29d7b15de580b84c2b8e&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-0d78144d",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "079921e6-4863-46ee-a7bc-36f4b4214cb0",
+      "name": "Radio Platine Loire Atlantique",
+      "url": "https://azura.radioplatine.fr:5001/listen/radio_platine/flux.loireatlantique",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551669640734711869/radioplatine_pochette_loireatl_pays_dl_loire.png?ex=6ab2d076&is=6ab17ef6&hm=042a852cc32c4a1e987128564cb86e204a8ad986351a6b2f99155409034ace1a&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-0d78144d",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "f678198f-99e5-4864-8936-a9af594c9371",
+      "name": "Radio Platine IDF ",
+      "url": "https://azura.radioplatine.fr:5001/listen/radio_platine/flux.idf",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551669640315408484/radioplatine_pochette_idf.png?ex=6ab2d076&is=6ab17ef6&hm=7efd15509e15aa56a17b34d2242f3988b63c7d124ae9ca66286fa436a9cc94ee&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-0d78144d",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "4059baaf-4373-42a0-bfb0-702a01bbf231",
+      "name": "Radio Platine PACA",
+      "url": "https://azura.radioplatine.fr:5001/listen/radio_platine/flux.coteazure",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551669641934536805/radioplatine_pochette_paca.png?ex=6ab2d077&is=6ab17ef7&hm=5a1773b864cfc7f5316fcd0a9eda81bd85956a9960994a2115da182efecc5844&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-0d78144d",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "3a11ae2e-c61d-4c43-bc22-69e71ac15c17",
+      "name": "Radio Platine Bretagne",
+      "url": "https://azura.radioplatine.fr:5001/listen/radio_platine/flux.bretagne",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551669639434600540/radioplatine_pochette_bretagne.png?ex=6ab2d076&is=6ab17ef6&hm=0eea0e9dea26c6e83499f6e8ccc79fab44e9cd26686e3170ac02045e22e64111&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-0d78144d",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "c98d162e-55f9-49d7-9ed8-03a82374e92c",
+      "name": "Radio Platine Haut de France",
+      "url": "https://azura.radioplatine.fr:5001/listen/radio_platine/flux.hdf",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551669639870816387/radioplatine_pochette_hdf.png?ex=6ab2d076&is=6ab17ef6&hm=203389b43d165db7ec3a495c60da2519380b9f6a5447a9d927844f9423cb8b7f&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-0d78144d",
+      "group": "Regionales",
+      "countryCode": "FR"
+    },
+    {
+      "id": "1ac73b8b-089f-4079-8744-1c48d8f97301",
+      "name": "Radio Platine ",
+      "url": "https://azura.radioplatine.fr:5001/listen/radio_platine/radio.mp3",
+      "favicon": "https://media.discordapp.net/attachments/1442573888553877585/1551669548548362271/radioplatine_pp_normale.png?ex=6ab2d061&is=6ab17ee1&hm=a6ecc876d95ffb0da9b32a777077f5f35eb0c84e58fce5d47819b5d6ffc392d0&=&format=webp&quality=lossless",
+      "country": "France",
+      "tags": "General",
+      "bitrate": 0,
+      "codec": "MP3",
+      "network": "perso-0d78144d",
+      "group": "National",
+      "countryCode": "ID"
+    },
+    {
+      "id": "2bb8c49d-4b98-4920-8c16-f1e1fd51a0cc",
+      "name": "Nouvelle radio",
+      "url": "",
+      "favicon": "",
+      "country": "",
+      "tags": "",
+      "bitrate": 0,
+      "codec": "MP3"
+    },
     {
       "id": "5e70f411-faf3-4b4f-87c8-0a923b658d71",
       "name": "Chérie FM Top Singles 2000",
@@ -1083,7 +1204,24 @@
       "group": "Webradio"
     }
   ],
-  "overrides": {},
+  "overrides": {
+    "509c52ec-dd6f-4a42-bd83-5f374748fd12": {
+      "name": "RRI - Pro 1 Surabaya",
+      "url": "https://stream-node0.rri.co.id/streaming/18/9018/rrisurabayapro1.mp3",
+      "favicon": "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse4.mm.bing.net%2Fth%2Fid%2FOIP.we_brjJhYU-8Y0tA1KFMGAAAAA%3Fr%3D0%26pid%3DApi&f=1&ipt=c0f99eca98337fb3ac845140e935e18680950db17459a2414b2ee24cbc29d24f",
+      "country": "Indonesia",
+      "countryCode": "ID",
+      "tags": ""
+    },
+    "73da4df3-0539-4cdc-b81f-d5debbd6a19f": {
+      "name": "RRI Pro 1",
+      "url": "https://stream-node1.rri.co.id/streaming/25/9025/rrijakartapro1.mp3",
+      "favicon": "https://scontent-cdg4-3.xx.fbcdn.net/v/t39.30808-6/464522252_1077918941006380_8001626715985375700_n.jpg?stp=dst-jpg_tt6&cstp=mx1000x1000&ctp=s1000x1000&_nc_cat=111&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=FoT08ln9BuUQ7kNvwFfvz_o&_nc_oc=Adp39FHeNLoimewH_u-DhzCafC1cf1Wj1nAHcn9PJQ1FAjnsRTtmdy_QxUmS7102aU7x8CheUv5a4a-f0n17taqb&_nc_zt=23&_nc_ht=scontent-cdg4-3.xx&_nc_gid=0syU3EJqjDwXejijiL17AA&_nc_ss=7b2a8&oh=00_AQJP4v0W71xls2-jHvqRcWmbfCQOeQzOg0W0-oP_P9X8dQ&oe=6AB6F552",
+      "country": "Indonesia",
+      "countryCode": "ID",
+      "tags": ""
+    }
+  },
   "blocked": {
     "117aac00-351d-11ea-8dd7-52543be04c81": {
       "station": {
@@ -1144,6 +1282,20 @@
       },
       "reason": "Bloquée manuellement",
       "at": 1789982656740
+    },
+    "95198734-389a-438e-a2b7-040bbd09f59d": {
+      "station": {
+        "id": "95198734-389a-438e-a2b7-040bbd09f59d",
+        "name": "Nouvelle radio",
+        "url": "",
+        "favicon": "",
+        "country": "",
+        "tags": "",
+        "bitrate": 0,
+        "codec": "MP3"
+      },
+      "reason": "Bloquée manuellement",
+      "at": 1790022163787
     }
   },
   "checks": {}
