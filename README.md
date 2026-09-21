@@ -69,8 +69,13 @@ lib/
 data/catalog.json           catalogue versionné
 ```
 
+## Installer sur mobile (PWA)
+
+Le Ménestrel est une application web installable : un bouton **📲 Installer** apparaît en haut de la page (Chrome / Android, Edge, Chrome desktop). Sur iPhone / iPad : **Partager → Sur l'écran d'accueil**. Une fois installée, l'app s'ouvre en plein écran avec son icône, et affiche tes favoris et enregistrements même hors ligne. Les flux radio, eux, demandent une connexion.
+
+Le service worker n'est actif qu'en production (`npm run build && npm run start`). L'installation exige HTTPS, sauf sur `localhost`.
+
 ## Notes
 
 - Favoris, volume et enregistrements sont stockés dans ton navigateur : ils ne suivent pas d'un appareil à l'autre.
 - Les logos des réseaux sont récupérés via le service de favicons de Google.
-- Le thème reprend celui de plus2tele.com (fond marine, bleu `#5073d4`, police SUSE).

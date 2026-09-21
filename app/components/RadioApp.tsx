@@ -23,6 +23,7 @@ import {
   saveRecording,
 } from "@/lib/recordings";
 import { Logo, StationCard } from "./StationCard";
+import { InstallButton } from "./InstallButton";
 import { Networks } from "./Networks";
 import { Recordings } from "./Recordings";
 
@@ -301,12 +302,15 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
   ).filter((s) => !hiddenIds.has(s.id));
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 pb-40 pt-8">
+    <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-40 pt-[max(2rem,env(safe-area-inset-top))]">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="bg-gradient-to-r from-brand-light to-brand bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-          Le <span className="font-light">Ménestrel</span>
-        </h1>
-        <nav className="flex rounded-full bg-white/5 p-1 text-sm">
+        <div className="flex items-center gap-3">
+          <h1 className="bg-gradient-to-r from-brand-light to-brand bg-clip-text text-2xl font-bold tracking-tight text-transparent">
+            Le <span className="font-light">Ménestrel</span>
+          </h1>
+          <InstallButton />
+        </div>
+        <nav className="flex w-full overflow-x-auto rounded-full bg-white/5 p-1 text-sm [scrollbar-width:none] sm:w-auto">
           {(
             [
               ["discover", "Découvrir"],
@@ -321,7 +325,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
             <button
               key={k}
               onClick={() => setTab(k)}
-              className={`rounded-full px-3 py-1.5 transition ${tab === k ? "bg-white/15 text-white" : "text-zinc-400 hover:text-white"}`}
+              className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 transition sm:flex-none sm:py-1.5 ${tab === k ? "bg-white/15 text-white" : "text-zinc-400 hover:text-white"}`}
             >
               {label}
             </button>
@@ -431,7 +435,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
 
       {/* Lecteur */}
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-brand/25 bg-dark-bg/90 backdrop-blur-xl">
-        <div className="mx-auto max-w-3xl px-4 py-3">
+        <div className="mx-auto max-w-3xl px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
           {notice && (
             <div className="mb-2 flex items-center justify-center gap-3 rounded-lg bg-white/10 px-3 py-1.5 text-sm">
               {notice.msg}
@@ -449,8 +453,8 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
             </div>
           )}
           {current ? (
-            <div className="flex items-center gap-3">
-              <Logo station={current} size={48} />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Logo station={current} size={44} />
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{current.name}</div>
                 <div
@@ -494,13 +498,13 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
               )}
               <button
                 onClick={toggleRec}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${rec ? "animate-pulse bg-red-600 text-white" : "border border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
+                className={`shrink-0 rounded-full px-3 py-2.5 text-sm font-medium transition sm:px-4 sm:py-2 ${rec ? "animate-pulse bg-red-600 text-white" : "border border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
               >
                 {rec ? "■ Stop" : "● REC"}
               </button>
               <button
                 onClick={toggle}
-                className="grid h-11 w-11 place-items-center rounded-full bg-white text-lg text-black hover:scale-105"
+                className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white sm:h-11 sm:w-11 text-lg text-black hover:scale-105"
                 aria-label={playing ? "Pause" : "Lecture"}
               >
                 {playing ? "❚❚" : "▶"}

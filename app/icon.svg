@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#1f3a78"/>
+      <stop offset="1" stop-color="#0a1628"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <g transform="translate(-58 4)">
+  <!-- note de musique -->
+  <ellipse cx="204" cy="346" rx="56" ry="42" transform="rotate(-22 204 346)" fill="#fff"/>
+  <rect x="236" y="148" width="22" height="196" rx="6" fill="#fff"/>
+  <path d="M250 148 C330 160 372 210 356 290 C346 246 312 226 250 216 Z" fill="#fff"/>
+  <!-- ondes radio -->
+  <g fill="none" stroke="#8aa4ee" stroke-width="20" stroke-linecap="round">
+    <path d="M384 222 A 84 84 0 0 1 384 358"/>
+    <path d="M424 184 A 140 140 0 0 1 424 396" opacity=".6"/>
+  </g>
+  </g>
+</svg>

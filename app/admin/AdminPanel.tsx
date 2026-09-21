@@ -262,7 +262,7 @@ function Admin({ initial }: { initial: Catalog }) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Admin des stations</h1>
         <div className="flex items-center gap-4 text-sm">
@@ -277,15 +277,15 @@ function Admin({ initial }: { initial: Catalog }) {
         Glisse une station sur un réseau à droite pour l&apos;y ranger.
       </p>
 
-      {/* Recherche globale */}
+      {/* Recherche globale (catalogue, bloquées, Radio Browser) */}
       <div className="mb-3 flex gap-2">
         <input
           value={query}
           onChange={(e) => { setQuery(e.target.value); setEditing(null); }}
-          placeholder="🔍 Rechercher une station partout (catalogue, bloquées, Radio Browser)…"
+          placeholder="🔍 Rechercher une station…"
           className="min-w-0 flex-1 rounded-xl border border-brand/25 bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500 focus:border-brand/60"
         />
-        <select value={country} onChange={(e) => setCountry(e.target.value)} className="rounded-xl border border-brand/25 bg-dark-card px-2 text-sm outline-none" aria-label="Pays de la recherche">
+        <select value={country} onChange={(e) => setCountry(e.target.value)} className="max-w-32 rounded-xl border border-brand/25 bg-dark-card px-2 text-sm outline-none" aria-label="Pays de la recherche">
           {FALLBACK_COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
         </select>
         {searching && <Btn onClick={() => setQuery("")}>✕</Btn>}
@@ -363,9 +363,9 @@ function Admin({ initial }: { initial: Catalog }) {
                       onDragEnd={() => { dragged.current = null; setOver(null); }}
                       className={`cursor-grab rounded-2xl border active:cursor-grabbing ${compact ? "px-3 py-1.5" : "p-3"} ${st === "dead" ? "border-red-500/40 bg-red-500/10" : st === "blocked" ? "border-brand/15 bg-white/[0.02] opacity-60" : "border-brand/15 bg-white/[0.03]"}`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:flex-nowrap">
                         <Logo station={s} size={compact ? 28 : 40} dead={st === "dead"} />
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 basis-32">
                           <div className={`truncate text-sm font-medium ${st === "blocked" ? "line-through" : ""}`}>
                             {s.name}{catalog.overrides[s.id] && <span className="ml-2 text-xs text-amber-400">modifiée</span>}{cs && <span className="ml-2 text-xs text-sky-400">catalogue</span>}
                           </div>
@@ -515,8 +515,8 @@ function NetworkManager({ networks, count, form, onForm, onSave, onDelete, onOpe
         Un réseau regroupe des stations que tu choisis (ex. « Mes radios jazz »). Il apparaît dans l&apos;onglet Réseaux du site. Range-y des stations par glisser-déposer ou avec le menu « Réseau » de chaque station.
       </p>
       {networks.map((n) => (
-        <div key={n.id} className="flex items-center gap-3 rounded-2xl border border-brand/15 bg-white/[0.03] p-3">
-          <div className="min-w-0 flex-1">
+        <div key={n.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-brand/15 bg-white/[0.03] p-3">
+          <div className="min-w-0 flex-1 basis-40">
             <div className="truncate text-sm font-medium">{n.name}</div>
             <div className="truncate text-xs text-zinc-500">{[n.country, `${count(n.id)} station(s)`, n.description].filter(Boolean).join(" · ")}</div>
           </div>
@@ -545,7 +545,7 @@ function NetworkManager({ networks, count, form, onForm, onSave, onDelete, onOpe
 
 function Btn({ children, ...p }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...p} className="rounded-lg border border-brand/25 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-transparent">
+    <button {...p} className="rounded-lg border border-brand/25 px-3 py-2 text-xs text-zinc-300 hover:bg-white/10 disabled:opacity-40 sm:py-1.5 disabled:hover:bg-transparent">
       {children}
     </button>
   );
