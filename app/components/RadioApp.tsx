@@ -34,6 +34,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
   const [query, setQuery] = useState("");
   const [country, setCountry] = usePersisted("tz.country", "FR");
   const [tag, setTag] = useState("");
+  const [showWebradios, setShowWebradios] = usePersisted("tz.showWebradios", true);
   const [stations, setStations] = useState<Station[]>([]);
   const [countries, setCountries] = useState<Country[]>(FALLBACK_COUNTRIES);
   const [hasMore, setHasMore] = useState(false);
@@ -72,7 +73,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
 
   // recherche (debounce)
   useEffect(() => {
-    if (tab !== "discover") return;
+    if (tab !== "discover" || !showWebradios) return;
     const ctrl = new AbortController();
     const t = setTimeout(async () => {
       setLoading(true);
@@ -95,7 +96,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [query, country, tag, tab]);
+  }, [query, country, tag, tab, showWebradios]);
 
   useEffect(() => {
     fetchCountries().then(setCountries);
@@ -222,24 +223,42 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
       },
     };
 
+    // Un flux radio en direct ne se termine jamais "normalement" : une coupure
+    // (done précoce ou erreur réseau) est en général transitoire côté serveur,
+    // donc on retente plutôt que d'arrêter l'enregistrement d'un coup.
+    const MAX_RETRIES = 5;
+    let retries = 0;
     let failed = false;
-    try {
-      const res = await fetch(
-        `/api/stream?url=${encodeURIComponent(station.url)}`,
-        { signal: abort.signal },
-      );
-      if (!res.ok || !res.body) throw new Error("stream");
-      mime = res.headers.get("content-type") ?? mime;
-      const reader = res.body.getReader();
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (file) await file.write(value as Uint8Array<ArrayBuffer>);
-        else chunks.push(value as Uint8Array<ArrayBuffer>);
-        bytes += value.length;
+    while (!stopped) {
+      try {
+        const res = await fetch(
+          `/api/stream?url=${encodeURIComponent(station.url)}`,
+          { signal: abort.signal },
+        );
+        if (!res.ok || !res.body) throw new Error("stream");
+        mime = res.headers.get("content-type") ?? mime;
+        const reader = res.body.getReader();
+        let gotData = false;
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (file) await file.write(value as Uint8Array<ArrayBuffer>);
+          else chunks.push(value as Uint8Array<ArrayBuffer>);
+          bytes += value.length;
+          gotData = true;
+          retries = 0;
+        }
+        if (!gotData) throw new Error("empty");
+      } catch {
+        if (stopped) break;
       }
-    } catch {
-      failed = !stopped;
+      if (stopped) break;
+      retries++;
+      if (retries > MAX_RETRIES) {
+        failed = true;
+        break;
+      }
+      await new Promise((r) => setTimeout(r, Math.min(1000 * retries, 5000)));
     }
 
     clearInterval(timer);
@@ -335,17 +354,17 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
 
       {tab === "discover" && (
         <section className="mb-5 space-y-3">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher une radio…"
-              className="min-w-0 flex-1 rounded-xl border border-brand/25 bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500"
+              className="w-full min-w-0 rounded-xl border border-brand/25 bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500 sm:flex-1"
             />
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="rounded-xl border border-brand/25 bg-dark-card px-3 outline-none"
+              className="w-full shrink-0 rounded-xl border border-brand/25 bg-dark-card px-3 outline-none sm:w-auto sm:max-w-[45%]"
             >
               {countries.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -354,7 +373,23 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
               ))}
             </select>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex cursor-pointer select-none items-center gap-1.5 rounded-full border border-brand/25 px-3 py-1 text-xs text-zinc-400 hover:text-white">
+              <input
+                type="checkbox"
+                checked={showWebradios}
+                onChange={(e) => {
+                  const v = e.target.checked;
+                  setShowWebradios(v);
+                  if (!v) {
+                    setStations([]);
+                    setHasMore(false);
+                  }
+                }}
+                className="accent-brand"
+              />
+              Webradios
+            </label>
             {GENRES.map((g) => (
               <button
                 key={g}
