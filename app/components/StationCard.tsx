@@ -25,7 +25,7 @@ export function StationCard({ station, active, playing, favorite, onPlay, onFavo
   onPlay: () => void; onFavorite: () => void;
 }) {
   return (
-    <Card className={`group relative p-4 transition-colors sm:p-5 ${active ? "border-zinc-400 bg-[#242424]" : "hover:border-zinc-500 hover:bg-[#1e1e1e]"}`}>
+    <Card className={`group relative min-w-0 p-4 transition-colors sm:p-5 ${active ? "border-zinc-400 bg-[#242424]" : "hover:border-zinc-500 hover:bg-[#1e1e1e]"}`}>
       <Button variant="ghost" size="icon" onClick={onFavorite} aria-pressed={favorite} aria-label={favorite ? `Retirer ${station.name} des favoris` : `Ajouter ${station.name} aux favoris`} className={`absolute right-2 top-2 size-8 ${favorite ? "text-white" : "text-zinc-500"}`}><Heart className={favorite ? "fill-current" : ""} /></Button>
       <button onClick={onPlay} className="block w-full text-left" aria-label={`Écouter ${station.name}`}>
         <Logo station={station} size={64} />

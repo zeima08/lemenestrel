@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Disc3, Globe2, Heart, House, Library, Pause, Play, Radio, Search, Volume2 } from "lucide-react";
+import { Disc3, Globe2, Heart, House, Library, Menu, Pause, Play, Radio, Search, Volume2, X } from "lucide-react";
 import { Brand } from "./Brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,8 @@ const TAB_TITLES: Record<Tab, string> = {
 
 export default function RadioApp({ catalog }: { catalog: Catalog }) {
   const [tab, setTab] = useState<Tab>("discover");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [query, setQuery] = useState("");
   const [country, setCountry] = usePersisted("tz.country", "FR");
   const [tag, setTag] = useState("");
@@ -364,30 +366,42 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
   ).filter((s) => !hiddenIds.has(s.id));
 
   return (
-    <div className="min-h-screen pb-36 lg:pl-64">
+    <div className="min-h-screen pb-[calc(12rem+env(safe-area-inset-bottom))] sm:pb-36 lg:pl-64">
       <WelcomeDialog dialogRef={welcomeRef} onChoice={chooseRecording} />
       <aside className="border-b border-border bg-[#141414] px-5 py-5 lg:fixed lg:inset-y-0 lg:left-0 lg:z-20 lg:flex lg:w-64 lg:flex-col lg:border-b-0 lg:border-r lg:px-6 lg:pb-32 lg:pt-9">
-        <Brand />
-        <nav aria-label="Navigation principale" className="mt-5 flex gap-1 overflow-x-auto lg:mt-10 lg:flex-col lg:gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <Brand />
+          <Button ref={menuButtonRef} variant="ghost" size="icon" className="size-11 shrink-0 lg:hidden" aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={menuOpen} aria-controls="navigation-panel" onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
+        <div id="navigation-panel" className={`${menuOpen ? "flex" : "hidden"} flex-col lg:flex lg:flex-1`} onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            setMenuOpen(false);
+            menuButtonRef.current?.focus();
+          }
+        }}>
+        <nav aria-label="Navigation principale" className="mt-5 flex flex-col gap-2 lg:mt-10">
           {([
             ["discover", "Accueil", House],
             ["networks", "Réseaux de radios", Globe2],
             ["favorites", "Mes favoris", Heart],
             ["recordings", "Enregistrements", Library],
           ] as const).map(([key, label, Icon]) => (
-            <Button key={key} variant="ghost" onClick={() => setTab(key)} aria-current={tab === key ? "page" : undefined} className={`justify-start px-3 lg:h-11 ${tab === key ? "bg-white/10 text-white" : "text-zinc-500"}`}>
+            <Button key={key} variant="ghost" onClick={() => { setTab(key); setMenuOpen(false); menuButtonRef.current?.focus(); }} aria-current={tab === key ? "page" : undefined} className={`h-11 justify-start px-3 ${tab === key ? "bg-white/10 text-white" : "text-zinc-500"}`}>
               <Icon /><span>{label}</span>{key === "favorites" && favorites.length > 0 && <span className="ml-auto rounded bg-white/10 px-1.5 text-xs">{favorites.length}</span>}
             </Button>
           ))}
         </nav>
-        <Button variant="ghost" size="sm" onClick={() => welcomeRef.current?.showModal()} className="mt-4 justify-start px-3 text-zinc-400">Choix d’enregistrement</Button>
+        <Button variant="ghost" size="sm" onClick={() => { setMenuOpen(false); menuButtonRef.current?.focus(); welcomeRef.current?.showModal(); }} className="mt-4 h-11 justify-start px-3 text-zinc-400">Choix d’enregistrement</Button>
         <Link href="/mentions-legales" className="mt-3 block px-3 text-xs text-zinc-400 underline underline-offset-4 hover:text-white">Mentions légales & confidentialité</Link>
-        <div className="mt-auto hidden pt-12 lg:block">
+        <div className="mt-auto pt-4 lg:pt-12">
 
           <div className="mt-5"><InstallButton /></div>
         </div>
+        </div>
       </aside>
-      <div className="mx-auto max-w-[1480px] px-5 py-7 sm:px-9 lg:px-12 lg:py-10">
+      <div className="mx-auto min-w-0 max-w-[1480px] px-4 py-6 sm:px-9 lg:px-12 lg:py-10">
       <header className="mb-9 flex items-start justify-between gap-4">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{TAB_TITLES[tab]}</h1>
       </header>
@@ -450,7 +464,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
         {tab === "discover" && !q && !tag && list.length > 0 && (
           <section aria-label="Sélection de radios" className="mb-10">
             <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold tracking-tight">Sélection de radios</h2></div>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {list.slice(0, 3).map((station, index) => (
                 <Card key={station.id} className="group relative overflow-hidden bg-[#1c1c1c] p-6 transition-colors hover:border-zinc-500">
                   <div className="pointer-events-none absolute -right-10 -top-10 size-52 rounded-full border border-white/[0.04]" /><div className="pointer-events-none absolute -right-3 -top-3 size-36 rounded-full border border-white/[0.04]" />
@@ -489,7 +503,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
                   : "Aucune radio trouvée."}
               </p>
             )}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               {list.map((s) => (
                 <StationCard
                   key={s.id}
@@ -530,7 +544,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-[#161616]/95 backdrop-blur-xl">
         <div className="mx-auto max-w-[1740px] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-8">
           {notice && (
-            <div className="mb-2 flex items-center justify-center gap-3 rounded-lg bg-white/10 px-3 py-1.5 text-sm">
+            <div role="status" className="mb-2 flex flex-wrap items-center justify-center gap-3 rounded-lg bg-white/10 px-3 py-1.5 text-sm">
               {notice.msg}
               {notice.undo && (
                 <button
@@ -546,9 +560,9 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
             </div>
           )}
           {current ? (
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-3">
               <Logo station={current} size={44} />
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 basis-[calc(100%-4rem)] sm:basis-auto sm:flex-1">
                 <div className="truncate font-medium">{current.name}</div>
                 <div
                   className={`truncate text-xs ${streamError ? "text-red-400" : "text-zinc-400"}`}
@@ -593,7 +607,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
                 onClick={toggleRec}
                 disabled={!rec && !recordingAllowed}
                 title={recordingAllowed ? "Enregistrer sur cet appareil" : "Enregistrement désactivé. Modifiez votre choix dans Choix d’enregistrement."}
-                className={`shrink-0 rounded-full px-3 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 sm:px-4 sm:py-2 ${rec ? "animate-pulse bg-red-600 text-white" : "border border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
+                className={`ml-auto shrink-0 rounded-full px-3 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 sm:ml-0 sm:px-4 sm:py-2 ${rec ? "animate-pulse bg-red-600 text-white" : "border border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
               >
                 {rec ? "■ Stop" : "● REC"}
               </button>

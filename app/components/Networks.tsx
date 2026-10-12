@@ -31,9 +31,9 @@ export function Networks(props: Props) {
 
   return (
     <div>
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un réseau…" className="min-w-0 flex-1 rounded-xl border border-input bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500 focus:border-brand/60" />
-        <select value={country} onChange={(e) => setCountry(e.target.value)} className="rounded-xl border border-input bg-dark-card px-3 outline-none">
+        <select aria-label="Pays des réseaux" value={country} onChange={(e) => setCountry(e.target.value)} className="min-h-11 min-w-0 rounded-xl border border-input bg-dark-card px-3 outline-none sm:max-w-48">
           <option value="">Tous pays</option>
           {countries.map((c) => <option key={c}>{c}</option>)}
         </select>
