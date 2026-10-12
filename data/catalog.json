@@ -31,6 +31,17 @@
   },
   "custom": [
     {
+      "id": "74aed8b9-e374-4c14-aed2-1f24cd31bfa6",
+      "name": "Mosaïque FM Estérel Méditerranée",
+      "url": "https://mosaiquefm.potin.xyz:8443/stream",
+      "favicon": "https://radioenlignefrance.com/storage/radios/4659/5679/conversions/D4YXutWHtvRxMoAoHT64CoxqFLI156-metabW9zYWlxdWUtZm0ucG5n--lg.webp",
+      "country": "France",
+      "tags": "musiques actuelles alternatives,musiques du monde,grands classiques,jazz,funk,blues,soul,gold,radio locale",
+      "bitrate": 0,
+      "codec": "",
+      "countryCode": "FR"
+    },
+    {
       "id": "d0ef32f0-ff29-4aa1-832c-0f9257d55213",
       "name": "RedZing Monaco/Menton",
       "url": "https://onair.redzingradio.com/redzing-monaco",
