@@ -32,15 +32,15 @@ export function Networks(props: Props) {
   return (
     <div>
       <div className="mb-4 flex gap-2">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un réseau…" className="min-w-0 flex-1 rounded-xl border border-brand/25 bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500 focus:border-brand/60" />
-        <select value={country} onChange={(e) => setCountry(e.target.value)} className="rounded-xl border border-brand/25 bg-dark-card px-3 outline-none">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un réseau…" className="min-w-0 flex-1 rounded-xl border border-input bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500 focus:border-brand/60" />
+        <select value={country} onChange={(e) => setCountry(e.target.value)} className="rounded-xl border border-input bg-dark-card px-3 outline-none">
           <option value="">Tous pays</option>
           {countries.map((c) => <option key={c}>{c}</option>)}
         </select>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {list.map((n) => (
-          <button key={n.id} onClick={() => setNetwork(n)} className="flex items-center gap-3 rounded-2xl border border-brand/15 bg-white/[0.03] p-3 text-left transition hover:bg-white/[0.07]">
+          <button key={n.id} onClick={() => setNetwork(n)} className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-left transition hover:bg-white/[0.07]">
             <NetworkLogo network={n} />
             <div className="min-w-0">
               <div className="truncate font-medium">{n.name}</div>
@@ -102,14 +102,14 @@ function NetworkDetail({ network, onBack, catalog, ...p }: { network: Network; o
           <p className="text-sm text-zinc-400">{network.description}</p>
         </div>
       </div>
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filtrer par région, ville, nom…" className="mb-5 w-full rounded-xl border border-brand/25 bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500 focus:border-brand/60" />
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filtrer par région, ville, nom…" className="mb-5 w-full rounded-xl border border-input bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500 focus:border-brand/60" />
       {!groups && !error && <p className="py-10 text-center text-zinc-500">Chargement…</p>}
       {error && <p className="py-10 text-center text-red-400">Impossible de charger ce réseau.</p>}
       {visible && !visible.length && <p className="py-10 text-center text-zinc-500">Aucune station trouvée.</p>}
       {visible?.map((g) => (
         <section key={g.label} className="mb-6">
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">{g.label} · {g.stations.length}</h3>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {g.stations.map((s) => (
               <StationCard key={s.id} station={s} active={p.currentId === s.id} playing={p.playing} favorite={p.isFav(s)} onPlay={() => p.onPlay(s)} onFavorite={() => p.onFavorite(s)} />
             ))}

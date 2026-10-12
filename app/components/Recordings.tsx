@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { deleteRecording, fmtDuration, fmtSize, listRecordings, type Recording } from "@/lib/recordings";
+import { RecordingNotice } from "./RecordingNotice";
+import { deleteRecording, exportRecording, fmtDuration, fmtSize, listRecordings, type Recording } from "@/lib/recordings";
 
 export function Recordings({ refreshKey, onPlayStart }: { refreshKey: number; onPlayStart: () => void }) {
   const [items, setItems] = useState<Recording[] | null>(null);
@@ -21,14 +22,6 @@ export function Recordings({ refreshKey, onPlayStart }: { refreshKey: number; on
     onPlayStart();
   };
 
-  const download = (r: Recording) => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(r.blob);
-    a.download = `${r.name.replace(/[\\/:*?"<>|]/g, "-")}.${r.ext}`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  };
-
   const remove = async (r: Recording) => {
     if (!confirm(`Supprimer « ${r.name} » ?`)) return;
     await deleteRecording(r.id);
@@ -38,9 +31,11 @@ export function Recordings({ refreshKey, onPlayStart }: { refreshKey: number; on
 
   if (!items) return null;
   if (!items.length)
-    return <p className="py-16 text-center text-zinc-500">Aucun enregistrement. Lance une radio puis appuie sur ● REC.</p>;
+    return <div><p className="py-16 text-center text-zinc-500">Aucun enregistrement sur cet appareil. Lance une radio puis appuie sur ● REC.</p><RecordingNotice /></div>;
 
   return (
+    <div>
+    <p className="mb-5 text-sm leading-relaxed text-zinc-400">Vos enregistrements sont conservés dans le navigateur de cet appareil. Utilisez « Enregistrer sur l’appareil » pour en garder un fichier dans vos téléchargements ou, si proposé par votre téléphone, dans Fichiers. Les fichiers enregistrés directement sont dans le dossier choisi.</p>
     <ul className="space-y-2">
       {items.map((r) => (
         <li key={r.id} className="rounded-2xl border border-brand/15 bg-white/[0.03] p-3">
@@ -52,12 +47,14 @@ export function Recordings({ refreshKey, onPlayStart }: { refreshKey: number; on
               <div className="truncate font-medium">{r.name}</div>
               <div className="text-xs text-zinc-400">{fmtDuration(r.duration)} · {fmtSize(r.size)} · .{r.ext}</div>
             </div>
-            <button onClick={() => download(r)} className="rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-white/10 sm:py-1.5" aria-label="Télécharger">⬇<span className="hidden sm:inline"> Télécharger</span></button>
+            <button onClick={() => exportRecording(r)} className="rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-white/10 sm:py-1.5" aria-label={`Enregistrer ${r.name} sur l’appareil`}>⬇<span className="ml-1">Enregistrer sur l’appareil</span></button>
             <button onClick={() => remove(r)} className="rounded-lg px-2 py-1.5 text-sm text-zinc-500 hover:bg-red-500/20 hover:text-red-300" aria-label="Supprimer">🗑</button>
           </div>
           {openId === r.id && url && <audio src={url} controls autoPlay className="mt-3 w-full" />}
         </li>
       ))}
     </ul>
+    <div className="mt-6"><RecordingNotice /></div>
+    </div>
   );
 }

@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { AudioLines, Disc3, Globe2, Heart, House, Library, Pause, Play, Radio, Search, Volume2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { applyCatalog, type Catalog } from "@/lib/catalog";
 import { HIDDEN_KEY, addHidden, type HiddenEntry } from "@/lib/hidden";
 import { usePersisted } from "@/lib/usePersisted";
@@ -15,6 +19,8 @@ import {
   type Station,
 } from "@/lib/radio";
 import {
+  downloadRecording,
+  fetchRecordingStream,
   extFromCodec,
   extFromMime,
   fmtDuration,
@@ -26,8 +32,13 @@ import { Logo, StationCard } from "./StationCard";
 import { InstallButton } from "./InstallButton";
 import { Networks } from "./Networks";
 import { Recordings } from "./Recordings";
+import { WelcomeDialog } from "./WelcomeDialog";
 
 type Tab = "discover" | "networks" | "favorites" | "recordings";
+const TAB_TITLES: Record<Tab, string> = {
+  discover: "Accueil", networks: "Réseaux de radios",
+  favorites: "Mes favoris", recordings: "Enregistrements",
+};
 
 export default function RadioApp({ catalog }: { catalog: Catalog }) {
   const [tab, setTab] = useState<Tab>("discover");
@@ -58,6 +69,12 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     null,
   );
   const [recKey, setRecKey] = useState(0);
+  const [recordingAllowed, setRecordingAllowed] = useState(false);
+  const welcomeRef = useRef<HTMLDialogElement>(null);
+  const chooseRecording = useCallback((allowed: boolean) => {
+    setRecordingAllowed(allowed);
+    if (!allowed) recRef.current?.stop();
+  }, []);
   const [notice, setNotice] = useState<{
     msg: string;
     undo?: () => void;
@@ -186,6 +203,11 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
   };
 
   const startRec = async (station: Station) => {
+    if (!recordingAllowed) return;
+    if (location.protocol === "https:" && station.url.startsWith("http:")) {
+      flash("Cette radio utilise un flux non sécurisé : l’enregistrement direct est indisponible sur ce site HTTPS.");
+      return;
+    }
     // Sauvegarde progressive : le fichier est choisi avant (geste utilisateur requis).
     let file: FileSystemWritableFileStream | null = null;
     if (canWriteDisk && toDisk) {
@@ -196,8 +218,10 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
           types: [{ description: "Audio", accept: { "audio/*": [`.${ext}`] } }],
         });
         file = await handle.createWritable();
-      } catch {
-        return; // choix annulé
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError"))
+          flash("Impossible de créer le fichier. Décochez Fichier direct pour enregistrer dans ce navigateur.");
+        return;
       }
     }
     const abort = new AbortController();
@@ -231,10 +255,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     let failed = false;
     while (!stopped) {
       try {
-        const res = await fetch(
-          `/api/stream?url=${encodeURIComponent(station.url)}`,
-          { signal: abort.signal },
-        );
+        const res = await fetchRecordingStream(station.url, abort.signal);
         if (!res.ok || !res.body) throw new Error("stream");
         mime = res.headers.get("content-type") ?? mime;
         const reader = res.body.getReader();
@@ -249,8 +270,13 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
           retries = 0;
         }
         if (!gotData) throw new Error("empty");
-      } catch {
+      } catch (error) {
         if (stopped) break;
+        // Un refus CORS est indistinguable d’une erreur réseau. Aucun repli serveur.
+        if (!bytes && error instanceof TypeError) {
+          failed = true;
+          break;
+        }
       }
       if (stopped) break;
       retries++;
@@ -264,8 +290,18 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     clearInterval(timer);
     recRef.current = null;
     setRec(null);
+    if (failed && !bytes) {
+      await file?.abort().catch(() => {});
+      flash("Enregistrement direct impossible : flux indisponible ou accès refusé par la radio au navigateur. Aucun relais serveur n’est utilisé.");
+      return;
+    }
     if (file) {
-      await file.close().catch(() => {});
+      try {
+        await file.close();
+      } catch {
+        flash("Impossible de finaliser le fichier sur cet appareil.");
+        return;
+      }
       flash(
         failed
           ? "Flux interrompu : fichier partiel conservé sur le disque."
@@ -273,11 +309,10 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
       );
       return;
     }
-    if (failed && !bytes) return flash("Impossible d'enregistrer ce flux.");
     if (!bytes) return;
     const duration = (Date.now() - started) / 1000;
     const ext = extFromMime(mime);
-    await saveRecording({
+    const recording = {
       id: crypto.randomUUID(),
       name: recordingName(station),
       station: station.name,
@@ -286,12 +321,19 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
       size: bytes,
       ext,
       blob: new Blob(chunks, { type: mime }),
-    });
+    };
+    try {
+      await saveRecording(recording);
+    } catch {
+      downloadRecording(recording);
+      flash("Stockage du navigateur indisponible : téléchargement du fichier lancé.");
+      return;
+    }
     setRecKey((k) => k + 1);
     flash(
       failed
         ? "Flux interrompu : enregistrement partiel sauvegardé."
-        : "Enregistrement sauvegardé ✓",
+        : "Enregistrement conservé sur cet appareil · Retrouvez-le dans Enregistrements.",
     );
   };
 
@@ -321,50 +363,51 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
   ).filter((s) => !hiddenIds.has(s.id));
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-40 pt-[max(2rem,env(safe-area-inset-top))]">
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div className="min-h-screen pb-36 lg:pl-64">
+      <WelcomeDialog dialogRef={welcomeRef} onChoice={chooseRecording} />
+      <aside className="border-b border-border bg-[#141414] px-5 py-5 lg:fixed lg:inset-y-0 lg:left-0 lg:z-20 lg:flex lg:w-64 lg:flex-col lg:border-b-0 lg:border-r lg:px-6 lg:pb-32 lg:pt-9">
         <div className="flex items-center gap-3">
-          <h1 className="bg-gradient-to-r from-brand-light to-brand bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-            Le <span className="font-light">Ménestrel</span>
-          </h1>
-          <InstallButton />
+          <span className="grid size-10 place-items-center rounded-xl bg-white text-black"><AudioLines size={23} /></span>
+          <div><p className="text-lg font-semibold tracking-tight">Le Ménestrel<span className="text-zinc-500">.</span></p></div>
         </div>
-        <nav className="flex w-full overflow-x-auto rounded-full bg-white/5 p-1 text-sm [scrollbar-width:none] sm:w-auto">
-          {(
-            [
-              ["discover", "Découvrir"],
-              ["networks", "Réseaux"],
-              [
-                "favorites",
-                `Favoris${favorites.length ? ` (${favorites.length})` : ""}`,
-              ],
-              ["recordings", "Enregistrements"],
-            ] as const
-          ).map(([k, label]) => (
-            <button
-              key={k}
-              onClick={() => setTab(k)}
-              className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 transition sm:flex-none sm:py-1.5 ${tab === k ? "bg-white/15 text-white" : "text-zinc-400 hover:text-white"}`}
-            >
-              {label}
-            </button>
+        <nav aria-label="Navigation principale" className="mt-5 flex gap-1 overflow-x-auto lg:mt-10 lg:flex-col lg:gap-2">
+          {([
+            ["discover", "Accueil", House],
+            ["networks", "Réseaux de radios", Globe2],
+            ["favorites", "Mes favoris", Heart],
+            ["recordings", "Enregistrements", Library],
+          ] as const).map(([key, label, Icon]) => (
+            <Button key={key} variant="ghost" onClick={() => setTab(key)} aria-current={tab === key ? "page" : undefined} className={`justify-start px-3 lg:h-11 ${tab === key ? "bg-white/10 text-white" : "text-zinc-500"}`}>
+              <Icon /><span>{label}</span>{key === "favorites" && favorites.length > 0 && <span className="ml-auto rounded bg-white/10 px-1.5 text-xs">{favorites.length}</span>}
+            </Button>
           ))}
         </nav>
+        <Button variant="ghost" size="sm" onClick={() => welcomeRef.current?.showModal()} className="mt-4 justify-start px-3 text-zinc-400">Choix d’enregistrement</Button>
+        <div className="mt-auto hidden pt-12 lg:block">
+
+          <div className="mt-5"><InstallButton /></div>
+        </div>
+      </aside>
+      <div className="mx-auto max-w-[1480px] px-5 py-7 sm:px-9 lg:px-12 lg:py-10">
+      <header className="mb-9 flex items-start justify-between gap-4">
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{TAB_TITLES[tab]}</h1>
       </header>
 
       {tab === "discover" && (
-        <section className="mb-5 space-y-3">
+        <section aria-label="Rechercher et filtrer les radios" className="mb-8 space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row">
-            <input
+            <div className="relative flex-1"><Search className="absolute left-3.5 top-3.5 size-4 text-zinc-500" /><Input
+              aria-label="Rechercher une radio"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher une radio…"
-              className="w-full min-w-0 rounded-xl border border-brand/25 bg-white/5 px-4 py-2.5 outline-none placeholder:text-zinc-500 sm:flex-1"
-            />
+              className="bg-card pl-10"
+            /></div>
             <select
+              aria-label="Pays des radios"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full shrink-0 rounded-xl border border-brand/25 bg-dark-card px-3 outline-none sm:w-auto sm:max-w-[45%]"
+              className="h-11 w-full shrink-0 rounded-lg border border-input bg-card px-3 text-sm outline-none sm:w-44"
             >
               {countries.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -391,19 +434,36 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
               Webradios
             </label>
             {GENRES.map((g) => (
-              <button
+              <Button variant="ghost" size="sm"
+                aria-pressed={tag === g}
                 key={g}
                 onClick={() => setTag(tag === g ? "" : g)}
-                className={`rounded-full border px-3 py-1 text-xs capitalize transition ${tag === g ? "border-brand bg-brand/20 text-brand-light" : "border-brand/25 text-zinc-400 hover:text-white"}`}
+                className={`rounded-full border capitalize ${tag === g ? "border-white bg-white text-black hover:bg-zinc-200 hover:text-black" : "border-border text-zinc-400"}`}
               >
                 {g}
-              </button>
+              </Button>
             ))}
           </div>
         </section>
       )}
 
-      <main className="flex-1">
+      <main>
+        {tab === "discover" && !q && !tag && list.length > 0 && (
+          <section aria-label="Sélection de radios" className="mb-10">
+            <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold tracking-tight">Sélection de radios</h2></div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {list.slice(0, 3).map((station, index) => (
+                <Card key={station.id} className="group relative overflow-hidden bg-[#1c1c1c] p-6 transition-colors hover:border-zinc-500">
+                  <div className="pointer-events-none absolute -right-10 -top-10 size-52 rounded-full border border-white/[0.04]" /><div className="pointer-events-none absolute -right-3 -top-3 size-36 rounded-full border border-white/[0.04]" />
+                  <div className="relative flex items-start justify-between"><Logo station={station} size={64} /><span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">0{index + 1} / Sélection</span></div>
+                  <h3 className="relative mt-7 truncate text-xl font-semibold tracking-tight">{station.name}</h3><p className="mt-1 truncate text-xs text-zinc-500">{station.country || "Radio du monde"} · {station.tags.split(",")[0] || "En direct"}</p>
+                  <Button onClick={() => play(station)} className="relative mt-5 rounded-full" size="sm"><Play className="fill-current" /> Écouter</Button>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+        {tab === "discover" && <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold tracking-tight">{q || tag ? "Résultats de recherche" : "Toutes les radios"}</h2><span className="text-xs text-zinc-500">{list.length} radios</span></div>}
         {tab === "networks" ? (
           <Networks
             catalog={catalog}
@@ -421,9 +481,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
           />
         ) : (
           <>
-            {loading && (
-              <p className="py-10 text-center text-zinc-500">Chargement…</p>
-            )}
+            {loading && <div role="status" className="mb-5 flex items-center gap-2 text-sm text-zinc-500"><Disc3 className="size-4 animate-spin" /> Recherche des radios…</div>}
             {error && <p className="py-10 text-center text-red-400">{error}</p>}
             {!loading && !error && !list.length && (
               <p className="py-16 text-center text-zinc-500">
@@ -432,7 +490,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
                   : "Aucune radio trouvée."}
               </p>
             )}
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               {list.map((s) => (
                 <StationCard
                   key={s.id}
@@ -468,9 +526,10 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
         </footer>
       )}
 
+      </div>
       {/* Lecteur */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-brand/25 bg-dark-bg/90 backdrop-blur-xl">
-        <div className="mx-auto max-w-3xl px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-[#161616]/95 backdrop-blur-xl">
+        <div className="mx-auto max-w-[1740px] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-8">
           {notice && (
             <div className="mb-2 flex items-center justify-center gap-3 rounded-lg bg-white/10 px-3 py-1.5 text-sm">
               {notice.msg}
@@ -507,7 +566,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
                     ))}
                 </div>
               </div>
-              <input
+              <Volume2 className="hidden size-4 text-zinc-500 sm:block" /><input
                 type="range"
                 min={0}
                 max={1}
@@ -517,7 +576,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
                 className="hidden w-24 accent-brand sm:block"
                 aria-label="Volume"
               />
-              {canWriteDisk && !rec && (
+              {recordingAllowed && canWriteDisk && !rec && (
                 <label
                   className="hidden cursor-pointer select-none items-center gap-1.5 text-xs text-zinc-400 md:flex"
                   title="Écrit l'enregistrement directement dans un fichier (recommandé pour les longues sessions)"
@@ -528,12 +587,14 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
                     onChange={(e) => setToDisk(e.target.checked)}
                     className="accent-brand"
                   />
-                  Sur disque
+                  Fichier direct
                 </label>
               )}
               <button
                 onClick={toggleRec}
-                className={`shrink-0 rounded-full px-3 py-2.5 text-sm font-medium transition sm:px-4 sm:py-2 ${rec ? "animate-pulse bg-red-600 text-white" : "border border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
+                disabled={!rec && !recordingAllowed}
+                title={recordingAllowed ? "Enregistrer sur cet appareil" : "Enregistrement désactivé. Modifiez votre choix dans Choix d’enregistrement."}
+                className={`shrink-0 rounded-full px-3 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 sm:px-4 sm:py-2 ${rec ? "animate-pulse bg-red-600 text-white" : "border border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
               >
                 {rec ? "■ Stop" : "● REC"}
               </button>
@@ -542,13 +603,11 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
                 className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white sm:h-11 sm:w-11 text-lg text-black hover:scale-105"
                 aria-label={playing ? "Pause" : "Lecture"}
               >
-                {playing ? "❚❚" : "▶"}
+                {playing ? <Pause size={18} className="fill-current" /> : <Play size={18} className="fill-current" />}
               </button>
             </div>
           ) : (
-            <p className="text-center text-sm text-zinc-500">
-              Choisis une radio pour commencer
-            </p>
+            <div className="flex items-center gap-4"><span className="grid size-11 place-items-center rounded-lg border border-border text-zinc-500"><Radio size={20} /></span><div><p className="text-sm text-zinc-500">Choisissez une radio pour commencer l’écoute.</p></div><span className="ml-auto grid size-11 shrink-0 place-items-center rounded-full bg-white/5 text-zinc-600"><Play size={18} /></span></div>
           )}
         </div>
       </div>
