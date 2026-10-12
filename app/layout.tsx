@@ -18,7 +18,7 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Le Ménestrel — Radios du monde & enregistrement",
+  title: "Le Ménestrel by zeimacode — Radios du monde & enregistrement",
   appleWebApp: {
     capable: true,
     title: "Ménestrel",

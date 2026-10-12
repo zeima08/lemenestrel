@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AudioLines, Disc3, Globe2, Heart, House, Library, Pause, Play, Radio, Search, Volume2 } from "lucide-react";
+import { Disc3, Globe2, Heart, House, Library, Pause, Play, Radio, Search, Volume2 } from "lucide-react";
+import { Brand } from "./Brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -366,10 +367,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     <div className="min-h-screen pb-36 lg:pl-64">
       <WelcomeDialog dialogRef={welcomeRef} onChoice={chooseRecording} />
       <aside className="border-b border-border bg-[#141414] px-5 py-5 lg:fixed lg:inset-y-0 lg:left-0 lg:z-20 lg:flex lg:w-64 lg:flex-col lg:border-b-0 lg:border-r lg:px-6 lg:pb-32 lg:pt-9">
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-xl bg-white text-black"><AudioLines size={23} /></span>
-          <div><p className="text-lg font-semibold tracking-tight">Le Ménestrel<span className="text-zinc-500">.</span></p></div>
-        </div>
+        <Brand />
         <nav aria-label="Navigation principale" className="mt-5 flex gap-1 overflow-x-auto lg:mt-10 lg:flex-col lg:gap-2">
           {([
             ["discover", "Accueil", House],
@@ -383,6 +381,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
           ))}
         </nav>
         <Button variant="ghost" size="sm" onClick={() => welcomeRef.current?.showModal()} className="mt-4 justify-start px-3 text-zinc-400">Choix d’enregistrement</Button>
+        <Link href="/mentions-legales" className="mt-3 block px-3 text-xs text-zinc-400 underline underline-offset-4 hover:text-white">Mentions légales & confidentialité</Link>
         <div className="mt-auto hidden pt-12 lg:block">
 
           <div className="mt-5"><InstallButton /></div>
