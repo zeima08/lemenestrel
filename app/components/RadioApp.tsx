@@ -220,9 +220,8 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
         });
         file = await handle.createWritable();
       } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError"))
-          flash("Impossible de créer le fichier. Décochez Fichier direct pour enregistrer dans ce navigateur.");
-        return;
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        flash("Écriture directe indisponible : l’enregistrement sera conservé dans ce navigateur.");
       }
     }
     const abort = new AbortController();
@@ -254,30 +253,51 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     const MAX_RETRIES = 5;
     let retries = 0;
     let failed = false;
+    let relayOnly = false;
     while (!stopped) {
+      const attempt = new AbortController();
+      const stopAttempt = () => attempt.abort();
+      abort.signal.addEventListener("abort", stopAttempt, { once: true });
+      let timedOut = false;
+      const timeout = () => {
+        timedOut = true;
+        attempt.abort();
+      };
+      let idleTimer = setTimeout(timeout, 12_000);
+      let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
       try {
-        const res = await fetchRecordingStream(station.url, abort.signal);
+        const res = await fetchRecordingStream(station.url, attempt.signal, relayOnly);
         if (!res.ok || !res.body) throw new Error("stream");
         mime = res.headers.get("content-type") ?? mime;
-        const reader = res.body.getReader();
+        reader = res.body.getReader();
         let gotData = false;
         for (;;) {
           const { done, value } = await reader.read();
           if (done) break;
+          if (!value.length) continue;
+          clearTimeout(idleTimer);
           if (file) await file.write(value as Uint8Array<ArrayBuffer>);
           else chunks.push(value as Uint8Array<ArrayBuffer>);
           bytes += value.length;
           gotData = true;
           retries = 0;
+          idleTimer = setTimeout(timeout, 12_000);
         }
         if (!gotData) throw new Error("empty");
       } catch (error) {
         if (stopped) break;
+        if (timedOut) relayOnly = true;
         // L'accès direct et le relais ont tous deux échoué.
         if (!bytes && error instanceof TypeError) {
           failed = true;
           break;
         }
+      } finally {
+        clearTimeout(idleTimer);
+        abort.signal.removeEventListener("abort", stopAttempt);
+        attempt.abort();
+        await reader?.cancel().catch(() => {});
+        reader?.releaseLock();
       }
       if (stopped) break;
       retries++;
@@ -291,9 +311,11 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     clearInterval(timer);
     recRef.current = null;
     setRec(null);
-    if (failed && !bytes) {
+    if (!bytes) {
       await file?.abort().catch(() => {});
-      flash("Enregistrement impossible : la radio ou le relais audio est indisponible. Réessaie ou choisis une autre radio.");
+      flash(failed
+        ? "Enregistrement impossible : la radio ou le relais audio est indisponible. Réessaie ou choisis une autre radio."
+        : "Aucun son reçu : aucun enregistrement n’a été créé. Réessaie ou choisis une autre radio.");
       return;
     }
     if (file) {
@@ -310,7 +332,6 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
       );
       return;
     }
-    if (!bytes) return;
     const duration = (Date.now() - started) / 1000;
     const ext = extFromMime(mime);
     const recording = {
@@ -339,6 +360,10 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
   };
 
   const toggleRec = () => {
+    if (!recordingAllowed) {
+      welcomeRef.current?.showModal();
+      return;
+    }
     if (rec) recRef.current?.stop();
     else if (current) startRec(current);
   };
@@ -570,7 +595,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
                   {streamError ||
                     (rec ? (
                       <span className="text-red-400">
-                        ● REC {fmtDuration(rec.elapsed)} · {fmtSize(rec.bytes)}
+                        {rec.bytes ? <>● REC {fmtDuration(rec.elapsed)} · {fmtSize(rec.bytes)}</> : "Connexion au flux pour l’enregistrement…"}
                       </span>
                     ) : playing ? (
                       "En direct"
@@ -605,8 +630,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
               )}
               <button
                 onClick={toggleRec}
-                disabled={!rec && !recordingAllowed}
-                title={recordingAllowed ? "Enregistrer sur cet appareil" : "Enregistrement désactivé. Modifiez votre choix dans Choix d’enregistrement."}
+                title={recordingAllowed ? "Enregistrer sur cet appareil" : "Choisir d’activer l’enregistrement sur cet appareil"}
                 className={`ml-auto shrink-0 rounded-full px-3 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 sm:ml-0 sm:px-4 sm:py-2 ${rec ? "animate-pulse bg-red-600 text-white" : "border border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
               >
                 {rec ? "■ Stop" : "● REC"}

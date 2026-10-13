@@ -49,7 +49,7 @@ export const saveRecording = (r: Recording) => tx("readwrite", (s) => s.put(r));
 export const deleteRecording = (id: string) => tx("readwrite", (s) => s.delete(id));
 
 // Le relais transporte le son ; le fichier est constitué et conservé sur l'appareil.
-export async function fetchRecordingStream(url: string, signal: AbortSignal) {
+export async function fetchRecordingStream(url: string, signal: AbortSignal, relayOnly = false) {
   const options: RequestInit = {
     signal,
     mode: "cors",
@@ -57,7 +57,7 @@ export async function fetchRecordingStream(url: string, signal: AbortSignal) {
     referrerPolicy: "no-referrer",
     cache: "no-store",
   };
-  if (!(location.protocol === "https:" && new URL(url).protocol === "http:")) {
+  if (!relayOnly && !(location.protocol === "https:" && new URL(url).protocol === "http:")) {
     try {
       const response = await fetch(url, options);
       if (response.ok && response.body) return response;
