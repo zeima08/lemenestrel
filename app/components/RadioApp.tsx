@@ -20,14 +20,15 @@ import {
   type Station,
 } from "@/lib/radio";
 import {
-  downloadRecording,
   fetchRecordingStream,
   extFromCodec,
   extFromMime,
   fmtDuration,
   fmtSize,
   recordingName,
+  recordingId,
   saveRecording,
+  type Recording,
 } from "@/lib/recordings";
 import { Logo, StationCard } from "./StationCard";
 import { InstallButton } from "./InstallButton";
@@ -72,6 +73,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     null,
   );
   const [recKey, setRecKey] = useState(0);
+  const [temporaryRecordings, setTemporaryRecordings] = useState<Recording[]>([]);
   const [recordingAllowed, setRecordingAllowed] = useState(false);
   const welcomeRef = useRef<HTMLDialogElement>(null);
   const chooseRecording = useCallback((allowed: boolean) => {
@@ -207,10 +209,6 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
 
   const startRec = async (station: Station) => {
     if (!recordingAllowed) return;
-    if (location.protocol === "https:" && station.url.startsWith("http:")) {
-      flash("Cette radio utilise un flux non sécurisé : l’enregistrement direct est indisponible sur ce site HTTPS.");
-      return;
-    }
     // Sauvegarde progressive : le fichier est choisi avant (geste utilisateur requis).
     let file: FileSystemWritableFileStream | null = null;
     if (canWriteDisk && toDisk) {
@@ -275,7 +273,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
         if (!gotData) throw new Error("empty");
       } catch (error) {
         if (stopped) break;
-        // Un refus CORS est indistinguable d’une erreur réseau. Aucun repli serveur.
+        // L'accès direct et le relais ont tous deux échoué.
         if (!bytes && error instanceof TypeError) {
           failed = true;
           break;
@@ -295,7 +293,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     setRec(null);
     if (failed && !bytes) {
       await file?.abort().catch(() => {});
-      flash("Enregistrement direct impossible : flux indisponible ou accès refusé par la radio au navigateur. Aucun relais serveur n’est utilisé.");
+      flash("Enregistrement impossible : la radio ou le relais audio est indisponible. Réessaie ou choisis une autre radio.");
       return;
     }
     if (file) {
@@ -316,7 +314,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     const duration = (Date.now() - started) / 1000;
     const ext = extFromMime(mime);
     const recording = {
-      id: crypto.randomUUID(),
+      id: recordingId(),
       name: recordingName(station),
       station: station.name,
       createdAt: started,
@@ -328,8 +326,8 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     try {
       await saveRecording(recording);
     } catch {
-      downloadRecording(recording);
-      flash("Stockage du navigateur indisponible : téléchargement du fichier lancé.");
+      setTemporaryRecordings((items) => [recording, ...items]);
+      flash("Stockage indisponible : retrouve le fichier dans Enregistrements et exporte-le avant de fermer la page.");
       return;
     }
     setRecKey((k) => k + 1);
@@ -490,6 +488,8 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
         ) : tab === "recordings" ? (
           <Recordings
             refreshKey={recKey}
+            temporaryRecordings={temporaryRecordings}
+            onRemoveTemporary={(id) => setTemporaryRecordings((items) => items.filter((item) => item.id !== id))}
             onPlayStart={() => audioRef.current?.pause()}
           />
         ) : (

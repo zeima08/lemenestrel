@@ -13,6 +13,16 @@ export type Recording = {
 
 const STORE = "recordings";
 
+export function recordingId() {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  // getRandomValues reste disponible sur une adresse locale HTTP.
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open("tunerzeima", 1);
@@ -38,15 +48,26 @@ export const listRecordings = async () =>
 export const saveRecording = (r: Recording) => tx("readwrite", (s) => s.put(r));
 export const deleteRecording = (id: string) => tx("readwrite", (s) => s.delete(id));
 
-// Aucun relais applicatif : le navigateur lit directement le flux autorisé par la radio.
-export function fetchRecordingStream(url: string, signal: AbortSignal) {
-  return fetch(url, {
+// Le relais transporte le son ; le fichier est constitué et conservé sur l'appareil.
+export async function fetchRecordingStream(url: string, signal: AbortSignal) {
+  const options: RequestInit = {
     signal,
     mode: "cors",
     credentials: "omit",
     referrerPolicy: "no-referrer",
     cache: "no-store",
-  });
+  };
+  if (!(location.protocol === "https:" && new URL(url).protocol === "http:")) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok && response.body) return response;
+      await response.body?.cancel();
+    } catch (error) {
+      if (signal.aborted) throw error;
+    }
+  }
+  signal.throwIfAborted();
+  return fetch(`/api/stream?url=${encodeURIComponent(url)}`, options);
 }
 
 export function downloadRecording(r: Recording) {
