@@ -20,6 +20,13 @@
       "country": "France",
       "description": "Web radio régionale/locale de la Côte d'azur",
       "logo": "/logos/logo_regional.png"
+    },
+    {
+      "id": "perso-a0699a77",
+      "name": "Chinese Radio",
+      "country": "",
+      "description": "",
+      "logo": ""
     }
   ],
   "categories": {
@@ -30,6 +37,18 @@
     ]
   },
   "custom": [
+    {
+      "id": "6a220d33-8089-4962-aa13-240b33f559c3",
+      "name": " Fujian News Radio",
+      "url": "https://lhttp.qtfm.cn/live/1731/64k.mp3",
+      "favicon": "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.radiosonline.app%2F11198%2Fwz7NFpUDeX.png&f=1&nofb=1&ipt=abb120083eeae3247c8a1f41fafe95435fd9e4044c469409f1f3435fb30c2ffd&ipo=images",
+      "country": "Chine",
+      "tags": "News",
+      "bitrate": 0,
+      "codec": "MP3",
+      "countryCode": "CN",
+      "network": "perso-a0699a77"
+    },
     {
       "id": "74aed8b9-e374-4c14-aed2-1f24cd31bfa6",
       "name": "Mosaïque FM Estérel Méditerranée",
