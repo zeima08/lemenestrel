@@ -72,6 +72,8 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
   const recRef = useRef<{ abort: AbortController; stop: () => void } | null>(
     null,
   );
+  const [preparingRecording, setPreparingRecording] = useState(false);
+  const recordingPendingRef = useRef(false);
   const [recKey, setRecKey] = useState(0);
   const [temporaryRecordings, setTemporaryRecordings] = useState<Recording[]>([]);
   const [recordingAllowed, setRecordingAllowed] = useState(false);
@@ -90,7 +92,9 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     [hidden],
   );
   const canWriteDisk =
-    typeof window !== "undefined" && "showSaveFilePicker" in window;
+    typeof window !== "undefined" &&
+    typeof window.showSaveFilePicker === "function" &&
+    !window.matchMedia("(pointer: coarse)").matches;
   const [toDisk, setToDisk] = usePersisted("tz.toDisk", true);
 
   // recherche (debounce)
@@ -220,7 +224,10 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
         });
         file = await handle.createWritable();
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (error instanceof DOMException && error.name === "AbortError") {
+          flash("Choix du fichier annulé : enregistrement non démarré.");
+          return;
+        }
         flash("Écriture directe indisponible : l’enregistrement sera conservé dans ce navigateur.");
       }
     }
@@ -232,6 +239,7 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     let stopped = false;
 
     setRec({ station, bytes: 0, elapsed: 0 });
+    setPreparingRecording(false);
     const timer = setInterval(
       () =>
         setRec(
@@ -359,13 +367,28 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
     );
   };
 
-  const toggleRec = () => {
+  const toggleRec = async () => {
+    const stopRecording = () => recRef.current?.stop();
     if (!recordingAllowed) {
       welcomeRef.current?.showModal();
       return;
     }
-    if (rec) recRef.current?.stop();
-    else if (current) startRec(current);
+    if (recRef.current) {
+      recRef.current.stop();
+      return;
+    }
+    if (!current || recordingPendingRef.current) return;
+    recordingPendingRef.current = true;
+    setPreparingRecording(true);
+    try {
+      await startRec(current);
+    } catch {
+      stopRecording();
+      flash("Impossible de démarrer ou finaliser l’enregistrement sur ce navigateur.");
+    } finally {
+      recordingPendingRef.current = false;
+      setPreparingRecording(false);
+    }
   };
 
   // avertit avant de fermer pendant un enregistrement
@@ -630,10 +653,12 @@ export default function RadioApp({ catalog }: { catalog: Catalog }) {
               )}
               <button
                 onClick={toggleRec}
+                disabled={preparingRecording}
+                aria-busy={preparingRecording}
                 title={recordingAllowed ? "Enregistrer sur cet appareil" : "Choisir d’activer l’enregistrement sur cet appareil"}
                 className={`ml-auto shrink-0 rounded-full px-3 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 sm:ml-0 sm:px-4 sm:py-2 ${rec ? "animate-pulse bg-red-600 text-white" : "border border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
               >
-                {rec ? "■ Stop" : "● REC"}
+                {preparingRecording ? "Démarrage…" : rec ? "■ Stop" : "● REC"}
               </button>
               <button
                 onClick={toggle}
